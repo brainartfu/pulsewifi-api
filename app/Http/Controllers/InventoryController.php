@@ -89,7 +89,7 @@ class InventoryController extends Controller
     }
 
     /**
-     * get category and model list.
+     * get category  list.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
@@ -97,14 +97,10 @@ class InventoryController extends Controller
     public function get_category()
     {
         $category = Category::latest('category.created_at')->get();
-        $model = DeviceModel::latest('device_model.created_at')->get();
         return response()->json([
             'success' => true,
-            'message' => 'Getting Device list Success!',
-            'data' => [
-                'category'=>$category,
-                'model'=>$model
-            ]
+            'message' => 'Getting Category list Success!',
+            'data' => $category
         ]);     
     }
 
@@ -132,24 +128,45 @@ class InventoryController extends Controller
      */
     public function new_category(Request $request)
     {
-        if ($request->name) {
-            $category = Category::create(['name'=>$request->name]);
-            if ($category) {
-                return response()->json([
-                    'success'=> true,
-                    'message'=> 'New Category Create Success!',
-                    'data'=> $category
-                ]);
-            } else {
-                return response()->json([
-                    'success'=> false,
-                    'message'=> 'New Category Create Failure!'
-                ]);
-            }
+        $validator = Validator::make($request->all(), [
+            'name' => 'required',
+            'unit' => 'required',
+            'tax_preference' => 'required',
+            'hsn_code' => 'required',
+            'tax_rate' => 'required',
+            'status' => 'required'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'ValidationError',
+                'data' => $validator->errors(),
+            ]);
+        }
+        $arr = array(
+            'name' => $request->name,
+            'unit' => $request->unit,
+            'tax_preference' => $request->tax_preference,
+            'hsn_code' => $request->hsn_code,
+            'tax_rate' => $request->tax_rate,
+            'status' => $request->status
+        );
+        if ($request->id == 'new') {
+            $category = Category::create($arr);        
+        } else {
+            $category = Category::find($request->id)->update($arr);
+        }
+        if ($category) {
+            return response()->json([
+                'success'=> true,
+                'message'=> 'New Category Create Success!',
+                'data'=> $category
+            ]);
         } else {
             return response()->json([
                 'success'=> false,
-                'message'=> 'Name required!'
+                'message'=> 'New Category Create Failure!'
             ]);
         }
         
