@@ -12,6 +12,7 @@ class WifiRouterModel extends Model
     protected $fillable = [
         'id',
         'name',
+        'images',
         'description',
         'status',
         'price',

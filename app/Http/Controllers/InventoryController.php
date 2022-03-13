@@ -31,8 +31,7 @@ class InventoryController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-
-            'name' => 'required|string|min:2|max:100|unique:wifi_router_model',
+            'name' => 'required|string|min:2|max:100'.$request->id?'|unique:wifi_router_model':'',
             'description' => 'string|min:2|max:100',
             'price' => 'numeric|min:1',
             // 'photo'=> 'required',
@@ -57,14 +56,18 @@ class InventoryController extends Controller
         foreach ($request->all() as $key => $value) {
             $arr_insert_keys[$key] = $value;
         }
-
-        $wifiRouterModel = WifiRouterModel::create($arr_insert_keys);
-        $response_wifiRouterModel = WifiRouterModel::where(['name' => $wifiRouterModel->name])->first();
+        if ($request->id) {
+            $wifiRouterModel = WifiRouterModel::where('id', '=', $request->id)->update($arr_insert_keys);
+            $response_wifiRouterModel = WifiRouterModel::where('id', '=', $request->id)->first();
+        } else {
+            $wifiRouterModel = WifiRouterModel::create($arr_insert_keys);
+            $response_wifiRouterModel = WifiRouterModel::where(['name' => $wifiRouterModel->name])->first();
+        }
         $id = $response_wifiRouterModel['id'];
         if ($image = $request->model_images) {
             $file_name = "WiFiRouterModel_" . $id . "_0." . $request->model_images->getClientOriginalExtension();
             $image->move(public_path('/WiFiRouter_img/'), $file_name);
-            $response_wifiRouterModel->update(['images' => public_path('/WiFiRouter_img/').$file_name]);
+            $response_wifiRouterModel->update(['images' => 'public/WiFiRouter_img/'.$file_name]);
         }
 
         return response()->json([
@@ -110,6 +113,30 @@ class InventoryController extends Controller
             'message' => 'Getting Device list Success!',
             'data' => $device
         ]);     
+    }
+
+
+    /**
+     * delete item .
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function delete_item(Request $request)
+    {
+        $item = WifiRouterModel::whereIn('id', $request->ids)->delete();
+        if ($item) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Item is deleted!',
+                'data' => $item
+            ]);     
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'item Deleting is failure!'
+            ]);
+        }
     }
 
     /**
