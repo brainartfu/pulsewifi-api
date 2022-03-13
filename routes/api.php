@@ -193,10 +193,11 @@ Route::group(['middleware' => ['api']], function ($router) {
         Route::post('/get_items', [InventoryController::class, 'getItems']);
         Route::post('/get_item_by_id', [InventoryController::class, 'get_item_by_id']);
         Route::post('/delete-item', [InventoryController::class, 'delete_item']);
-        Route::post('/get_category', [InventoryController::class, 'get_category']);
-        Route::post('/new-model', [InventoryController::class, 'new_model']);
         Route::post('/new-category', [InventoryController::class, 'new_category']);
+        Route::post('/get_category', [InventoryController::class, 'get_category']);
+        Route::post('/get_category_model', [InventoryController::class, 'get_category_model']);
         Route::post('/delete-category', [InventoryController::class, 'delete_category']);
+        Route::post('/new-model', [InventoryController::class, 'new_model']);
     });
 
     Route::group(['prefix' => '/products'], function () {

@@ -154,6 +154,22 @@ class InventoryController extends Controller
             'data' => $category
         ]);     
     }
+    /**
+     * get category  list.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function get_category_model()
+    {
+        $category = Category::latest('category.created_at')->get();
+        $model = WifiRouterModel::select('id', 'name')->get();
+        return response()->json([
+            'success' => true,
+            'message' => 'Getting Category list Success!',
+            'data' => array('category'=>$category, 'model'=>$model)
+        ]);     
+    }
 
     /**
      * delete category .
