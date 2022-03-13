@@ -18,6 +18,11 @@ class Category extends Model
     protected $fillable = [
         'id',
         'name',
-        'unit'
+        'unit',
+        'tax_rate',
+        'tax_preference',
+        'hsn_code',
+        'tax_rate',
+        'status'
     ];
 }

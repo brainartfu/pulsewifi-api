@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Inventory;
 use App\Models\Category;
+use App\Models\WifiRouterModel;
 use App\Models\DeviceModel;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -21,17 +22,28 @@ class InventoryController extends Controller
      */
     public function create(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required',
-            'brand' => 'required',
-            'model' => 'required',
-            'version' => 'required',
-            'category' => 'required',
-            'price' => 'required',
-            'shipping' => 'required',
-            'photo' => 'required',
-            'description' => 'required'
+        $user = auth()->user();
+        if ($user->role > 3) {
+            return response()->json([
+                'success' => false,
+                'message' => 'PermissionError',
+            ]);
+        }
 
+        $validator = Validator::make($request->all(), [
+
+            'name' => 'required|string|min:2|max:100|unique:wifi_router_model',
+            'description' => 'string|min:2|max:100',
+            'price' => 'numeric|min:1',
+            // 'photo'=> 'required',
+            // 'description'=> 'required',
+            // 'brand'=> 'required',
+            // 'model'=> 'required',
+            // 'hardware_version'=> 'required',
+            // 'ean'=> 'required',
+            // 'package_info'=> 'required',
+            // 'category'=> 'required',
+            // 'shipping'=> 'required',
         ]);
 
         if ($validator->fails()) {
@@ -41,31 +53,25 @@ class InventoryController extends Controller
                 'data' => $validator->errors(),
             ]);
         }
-        $inven = Inventory::create([
-            'name' => $request->name,
-            'brand' => $request->brand,
-            'model' => $request->model,
-            'version' => $request->version,
-            'category' => $request->category,
-            'price' => $request->price,
-            'shipping' => $request->shipping,
-            'photo' => $request->photo,
-            'description' => $request->description
-        ]);
 
-        if($inven){
-            return response()->json([
-                'success' => true,
-                'message' => "device generated",
-                'data' => $inven,
-            ], 200);
-        }else{
-            return response()->json([
-                'success' => false,
-                'message' => 'device creation failed',
-                'validated' => $validated
-            ], 400);
+        foreach ($request->all() as $key => $value) {
+            $arr_insert_keys[$key] = $value;
         }
+
+        $wifiRouterModel = WifiRouterModel::create($arr_insert_keys);
+        $response_wifiRouterModel = WifiRouterModel::where(['name' => $wifiRouterModel->name])->first();
+        $id = $response_wifiRouterModel['id'];
+        if ($image = $request->model_images) {
+            $file_name = "WiFiRouterModel_" . $id . "_0." . $request->model_images->getClientOriginalExtension();
+            $image->move(public_path('/WiFiRouter_img/'), $file_name);
+            $response_wifiRouterModel->update(['images' => public_path('/WiFiRouter_img/').$file_name]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Wifi Router Model successfully registered',
+            'data' => $response_wifiRouterModel,
+        ]);
     }
 
     /**
@@ -74,12 +80,11 @@ class InventoryController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function get(Request $request)
+    public function getItems(Request $request)
     {
-        $device = Inventory::leftJoin('category', 'inventory.category', '=', 'category.id')
-                    ->select("inventory.*", "category.name as cName")
-                    ->limit(10)
-                    ->latest('inventory.created_at')
+        $device = WifiRouterModel::leftJoin('category', 'wifi_router_model.category', '=', 'category.id')
+                    ->select("wifi_router_model.*", "category.name as cName")
+                    ->latest('wifi_router_model.created_at')
                     ->get();
         return response()->json([
             'success' => true,
@@ -105,20 +110,28 @@ class InventoryController extends Controller
     }
 
     /**
-     * Display the specified device.
+     * delete category .
      *
-     * @param  \App\Models\Inventory 
+     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function get_by_id(Request $request)
+    public function delete_category(Request $request)
     {
-        $device = Inventory::where('id', '=', $request->id)->get();
-        return response()->json([
-            'success'=> true,
-            'message'=> 'Getting Device by id',
-            'data'=>$device
-        ]);
+        $category = Category::whereIn('id', $request->ids)->delete();
+        if ($category) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Category is deleted!',
+                'data' => $category
+            ]);     
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'Category Deleting is failure!'
+            ]);
+        }
     }
+
 
     /**
      * Create the new category.
@@ -153,25 +166,44 @@ class InventoryController extends Controller
             'status' => $request->status
         );
         if ($request->id == 'new') {
-            $category = Category::create($arr);        
+            $category = Category::create($arr);
+            $message = "New Category Create Success!";
+            $failmessage = "New Category Create Failure!";
         } else {
             $category = Category::find($request->id)->update($arr);
+            $message = "Category Update Success!";
+            $failmessage = "Category Update Failure!";
         }
         if ($category) {
             return response()->json([
                 'success'=> true,
-                'message'=> 'New Category Create Success!',
+                'message'=> $message,
                 'data'=> $category
             ]);
         } else {
             return response()->json([
                 'success'=> false,
-                'message'=> 'New Category Create Failure!'
+                'message'=> $failmessage
             ]);
         }
         
     }
 
+    /**
+     * Display the specified device.
+     *
+     * @param  \App\Models\Inventory 
+     * @return \Illuminate\Http\Response
+     */
+    public function get_by_id(Request $request)
+    {
+        $device = Inventory::where('id', '=', $request->id)->get();
+        return response()->json([
+            'success'=> true,
+            'message'=> 'Getting Device by id',
+            'data'=>$device
+        ]);
+    }
     /**
      * Create the new model.
      *
