@@ -191,7 +191,7 @@ Route::group(['middleware' => ['api']], function ($router) {
     Route::group(['prefix' => '/inventory'], function() {
         Route::post('/add_device', [InventoryController::class, 'create']);
         Route::post('/get_items', [InventoryController::class, 'getItems']);
-        Route::post('/get_device_by_id', [InventoryController::class, 'get_by_id']);
+        Route::post('/get_item_by_id', [InventoryController::class, 'get_item_by_id']);
         Route::post('/get_category', [InventoryController::class, 'get_category']);
         Route::post('/new-model', [InventoryController::class, 'new_model']);
         Route::post('/new-category', [InventoryController::class, 'new_category']);

@@ -92,6 +92,25 @@ class InventoryController extends Controller
             'data' => $device
         ]);     
     }
+    /**
+     * get device list.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function get_item_by_id(Request $request)
+    {
+        $device = WifiRouterModel::where('wifi_router_model.id', '=', $request->id)
+            ->leftJoin('category', 'wifi_router_model.category', '=', 'category.id')
+            ->select("wifi_router_model.*", "category.name as cName")
+            ->latest('wifi_router_model.created_at')
+            ->get();
+        return response()->json([
+            'success' => true,
+            'message' => 'Getting Device list Success!',
+            'data' => $device
+        ]);     
+    }
 
     /**
      * get category  list.
