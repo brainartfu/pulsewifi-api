@@ -34,7 +34,7 @@ class InventoryController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|min:2|max:100'.$request->id?'|unique:wifi_router_model':'',
+            'name' => 'required|string|min:2|max:100'.$request->id?'':'|unique:wifi_router_model',
             'description' => 'string|min:2|max:100',
             'price' => 'numeric|min:1',
             // 'photo'=> 'required',
@@ -57,7 +57,9 @@ class InventoryController extends Controller
         }
 
         foreach ($request->all() as $key => $value) {
-            $arr_insert_keys[$key] = $value;
+            if ($key !== 'model_images') {
+                $arr_insert_keys[$key] = $value;
+            }
         }
         if ($request->id) {
             $wifiRouterModel = WifiRouterModel::where('id', '=', $request->id)->update($arr_insert_keys);
