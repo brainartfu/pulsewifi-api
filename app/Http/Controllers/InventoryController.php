@@ -6,7 +6,10 @@ use App\Models\Inventory;
 use App\Models\Category;
 use App\Models\WifiRouterModel;
 use App\Models\DeviceModel;
+use App\Models\WifiBrand;
+use App\Models\Wifi_router;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Validator;
 use Illuminate\Support\Facades\Log;
@@ -172,6 +175,24 @@ class InventoryController extends Controller
     }
 
     /**
+     * get category  list.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function get_category_brand_model()
+    {
+        $category = Category::select('id', 'name')->get();
+        $model = WifiRouterModel::select('id', 'name')->get();
+        $brand = WifiBrand::select('id', 'name')->get();
+        return response()->json([
+            'success' => true,
+            'message' => 'Getting Category list Success!',
+            'data' => array('category'=>$category, 'model'=>$model, 'brand'=> $brand)
+        ]);     
+    }
+
+    /**
      * delete category .
      *
      * @param  \Illuminate\Http\Request  $request
@@ -250,7 +271,169 @@ class InventoryController extends Controller
         }
         
     }
+    /**
+     * Create the new brand.
+     *
+     * @param  \App\Models\Brand
+     * @return \Illuminate\Http\Response
+     */
+    public function add_brand(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required', //more parameter
+        ]);
 
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'ValidationError',
+                'data' => $validator->errors(),
+            ]);
+        }
+        $arr = array(
+            'name' => $request->name
+        );
+        if ($request->id == 'new') {
+            $brand = WifiBrand::create($arr);
+            $message = "New Brand Create Success!";
+            $failmessage = "New Brand Create Failure!";
+        } else {
+            $brand = WifiBrand::find($request->id)->update($arr);
+            $message = "Brand Update Success!";
+            $failmessage = "Brand Update Failure!";
+        }
+        if ($brand) {
+            return response()->json([
+                'success'=> true,
+                'message'=> $message,
+                'data'=> $brand
+            ]);
+        } else {
+            return response()->json([
+                'success'=> false,
+                'message'=> $failmessage
+            ]);
+        }
+        
+    }
+    public function delete_brand(Request $request)
+    {
+        $brand = WifiBrand::where('id', '=', $request->id)->delete();
+        if ($brand) {
+            return response()->json([
+                'success'=> true,
+                'message'=> "Brand deleted successfully."
+            ]);
+        } else {
+            return response()->json([
+                'success'=> false,
+                'message'=> "Brand deleted failure."
+            ]);
+        }
+        
+    }
+
+    /**
+     * Create the new stock.
+     *
+     * @param  \App\Models\WifiRouterModel
+     * @return \Illuminate\Http\Response
+     */
+    public function new_stock(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            //'name' => 'required|string|min:2|max:100|unique:wifi_router',
+            // 'name' => 'required|string|min:2|max:100',
+            // 'mac_address' => 'required|string|min:17|max:18|unique:wifi_router',
+            'model_id' => 'required|integer',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'ValidationError',
+                'data' => $validator->errors(),
+            ]);
+        }
+
+        $secret = Str::random(30);
+        $key = Str::random(20);
+
+        $data = array(
+            'name' => $request->input('name'),
+            'mac_address' => $request->input('mac_address'),
+            'model_id' => $request->input('model_id'),
+            'pdoa_id' => 'pulse_1_2022-05-24_08-41-34',
+            'category' => $request->input('category'),
+            'brand' => $request->input('brand'),
+            'serial_num' => $request->input('serial'),
+            'wlan0' => $request->input('wlan0'),
+            'wlan1' => $request->input('wlan1'),
+            'configure' => $request->input('configure'),
+            'status' => $request->input('status'),
+
+        )
+        if ($request->input('id')) {
+            $router = Wifi_router::where('id', '=', $request->input('id'))->update($data);
+            if ($router) {
+                 return response()->json([
+                    'success' => true,
+                    'message' => 'Product successfully updated',
+                ]);
+            }
+        } else {
+            $router = Wifi_router::create($data);
+
+            $router->secret = $secret;
+            $router->key = $key;
+
+            $router->config_version = 0;
+            $router->save();
+            return response()->json([
+                'success' => true,
+                'message' => 'Product successfully registered',
+            ]);
+
+        }
+        return response()->json([
+            'success' => false,
+            'message' => 'Failure, try again.'
+        ])
+    }
+
+    /**
+     * Get Stocks.
+     *
+     * @param  \App\Models\Wifi_router
+     * @return \Illuminate\Http\Response
+     */
+    public function get_stock(Request $request) {
+        $stocks = Wifi_router::leftJoin('category', 'wifi_router.category', '=', 'category.id')
+        ->leftJoin('wifi_router_model', 'wifi_router.model_id', '=', 'wifi_router_model.id')
+        ->leftJoin('wi_fi_brand', 'wifi_router.brand', '=', 'wi_fi_brand.id')
+        ->leftJoin('users', 'wifi_router.owner_id', '=', 'users.id')
+        ->select('wifi_router.*', 'wifi_router_model.name as model_name', 'wi_fi_brand.name as brand_name', 'users.username as user_name', 'category.name as category_name')
+        ->get();
+        return response()->json([
+            'success' => true,
+            'message'=> 'Getting Stocks success.',
+            'data'=> $stocks
+        ]);
+    }
+    public function delete_stock(Request $request) {
+        $brand = Wifi_router::whereIn('id', $request->ids)->delete();
+        if ($brand) {
+            return response()->json([
+                'success'=> true,
+                'message'=> "Stock deleted successfully."
+            ]);
+        } else {
+            return response()->json([
+                'success'=> false,
+                'message'=> "Stock deleted failure."
+            ]);
+        }
+    }
     /**
      * Display the specified device.
      *

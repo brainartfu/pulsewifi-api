@@ -11,7 +11,13 @@ class Wifi_router extends Model
     public $table = "wifi_router";
     protected $fillable = [
         'id',
-        'name',
+        'category',
+        'brand',
+        'serial_num',
+        'wlan0',
+        'wlan1',
+        'configure',
+        'status',
         'mac_address',
         'location_id',
         'config_version',
