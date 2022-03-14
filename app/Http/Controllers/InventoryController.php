@@ -372,7 +372,7 @@ class InventoryController extends Controller
             'configure' => $request->input('configure'),
             'status' => $request->input('status'),
 
-        )
+        );
         if ($request->input('id')) {
             $router = Wifi_router::where('id', '=', $request->input('id'))->update($data);
             if ($router) {
@@ -398,7 +398,7 @@ class InventoryController extends Controller
         return response()->json([
             'success' => false,
             'message' => 'Failure, try again.'
-        ])
+        ]);
     }
 
     /**
