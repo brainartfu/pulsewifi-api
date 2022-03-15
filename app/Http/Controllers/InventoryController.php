@@ -11,6 +11,8 @@ use App\Models\Wifi_router;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Auth;
 use Validator;
 use Illuminate\Support\Facades\Log;
 // use DB;
@@ -36,16 +38,7 @@ class InventoryController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|min:2|max:100'.$request->id?'':'|unique:wifi_router_model',
             'description' => 'string|min:2|max:100',
-            'price' => 'numeric|min:1',
-            // 'photo'=> 'required',
-            // 'description'=> 'required',
-            // 'brand'=> 'required',
-            // 'model'=> 'required',
-            // 'hardware_version'=> 'required',
-            // 'ean'=> 'required',
-            // 'package_info'=> 'required',
-            // 'category'=> 'required',
-            // 'shipping'=> 'required',
+            'price' => 'numeric|min:1'
         ]);
 
         if ($validator->fails()) {
@@ -72,12 +65,12 @@ class InventoryController extends Controller
         if ($image = $request->model_images) {
             $file_name = "WiFiRouterModel_" . $id . "_0." . $request->model_images->getClientOriginalExtension();
             $image->move(public_path('/WiFiRouter_img/'), $file_name);
-            $response_wifiRouterModel->update(['images' => 'public/WiFiRouter_img/'.$file_name]);
+            $response_wifiRouterModel->update(['images' => 'WiFiRouter_img/'.$file_name]);
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'Wifi Router Model successfully registered',
+            'message' => 'Wifi Router Model successfully '.($request->id?'updated.':'registered.'),
             'data' => $response_wifiRouterModel,
         ]);
     }
@@ -91,9 +84,10 @@ class InventoryController extends Controller
     public function getItems(Request $request)
     {
         $device = WifiRouterModel::leftJoin('category', 'wifi_router_model.category', '=', 'category.id')
-                    ->select("wifi_router_model.*", "category.name as cName")
-                    ->latest('wifi_router_model.created_at')
-                    ->get();
+            ->leftJoin('wi_fi_brand', 'wifi_router_model.brand', '=', 'wi_fi_brand.id')
+            ->select("wifi_router_model.*", "category.name as cName", "wi_fi_brand.logo as brand_logo")
+            ->latest('wifi_router_model.created_at')
+            ->get();
         return response()->json([
             'success' => true,
             'message' => 'Getting Device list Success!',
@@ -295,15 +289,24 @@ class InventoryController extends Controller
         $arr = array(
             'name' => $request->name
         );
+
         if ($request->id == 'new') {
-            $brand = WifiBrand::create($arr);
+            $brand_id = WifiBrand::insertGetId($arr);
             $message = "New Brand Create Success!";
             $failmessage = "New Brand Create Failure!";
         } else {
-            $brand = WifiBrand::find($request->id)->update($arr);
+            $updatebrand = WifiBrand::find($request->id)->update($arr);
+            $brand_id = $request->id;
             $message = "Brand Update Success!";
             $failmessage = "Brand Update Failure!";
         }
+        $brand = WifiBrand::find($brand_id);
+        if ($image = $request->brand_logo) {
+            $file_name = "BrandLogo_" . $brand_id . "." . $request->brand_logo->getClientOriginalExtension();
+            $image->move(public_path('/Brand_logo/'), $file_name);
+            $brand->update(['logo' => 'Brand_logo/'.$file_name]);
+        }
+
         if ($brand) {
             return response()->json([
                 'success'=> true,
@@ -320,8 +323,13 @@ class InventoryController extends Controller
     }
     public function delete_brand(Request $request)
     {
-        $brand = WifiBrand::where('id', '=', $request->id)->delete();
-        if ($brand) {
+        $brand = WifiBrand::where('id', '=', $request->id)->first();
+        var_dump($brand->logo);
+        if (\Storage::exists('public/'.$brand->logo)) {
+            \Storage::delete($brand->logo);
+        }
+        $state = $brand->delete();
+        if ($state) {
             return response()->json([
                 'success'=> true,
                 'message'=> "Brand deleted successfully."
@@ -343,9 +351,9 @@ class InventoryController extends Controller
      */
     public function new_stock(Request $request)
     {
+        $user = auth()->user();
         $validator = Validator::make($request->all(), [
-            //'name' => 'required|string|min:2|max:100|unique:wifi_router',
-            // 'name' => 'required|string|min:2|max:100',
+            'name' => 'required|string|min:2|max:100'.($request->id?'':'|unique:wifi_router'),
             // 'mac_address' => 'required|string|min:17|max:18|unique:wifi_router',
             'model_id' => 'required|integer',
         ]);
@@ -373,7 +381,8 @@ class InventoryController extends Controller
             'wlan1' => $request->input('wlan1'),
             'configure' => $request->input('configure'),
             'status' => $request->input('status'),
-
+            'pdoa_id'=>$user->pdoa_id,
+            'owner_id'=>$user->id
         );
         if ($request->input('id')) {
             $router = Wifi_router::where('id', '=', $request->input('id'))->update($data);

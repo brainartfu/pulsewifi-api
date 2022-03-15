@@ -199,6 +199,7 @@ Route::group(['middleware' => ['api']], function ($router) {
         Route::post('/get_category_brand_model', [InventoryController::class, 'get_category_brand_model']);
         Route::post('/delete-category', [InventoryController::class, 'delete_category']);
         Route::post('/add-brand', [InventoryController::class, 'add_brand']);
+        Route::post('/delete-brand', [InventoryController::class, 'delete_brand']);
         Route::post('/new-stock', [InventoryController::class, 'new_stock']);
         Route::post('/get-stock', [InventoryController::class, 'get_stock']);
         Route::post('/delete-stock', [InventoryController::class, 'delete_stock']);

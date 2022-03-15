@@ -13,6 +13,7 @@ class WifiRouterModel extends Model
         'id',
         'name',
         'images',
+        'category',
         'description',
         'status',
         'price',
@@ -20,9 +21,14 @@ class WifiRouterModel extends Model
         'model',
         'hardware_version',
         'ean',
-        'package_info',
-        'category',
+        'package_weight',
+        'package_height',
+        'package_width',
+        'package_length',
+        'price_mrp',
+        'price_selling',
         'shipping',
+        'fixed_price'
     ];
 
 }
