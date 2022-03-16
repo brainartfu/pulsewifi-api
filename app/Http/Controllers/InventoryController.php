@@ -28,7 +28,7 @@ class InventoryController extends Controller
     public function create(Request $request)
     {
         $user = auth()->user();
-        if ($user->role > 3) {
+        if (!$user && $user->role > 3) {
             return response()->json([
                 'success' => false,
                 'message' => 'PermissionError',
@@ -38,7 +38,13 @@ class InventoryController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|min:2|max:100'.$request->id?'':'|unique:wifi_router_model',
             'description' => 'string|min:2|max:100',
-            'price' => 'numeric|min:1'
+            'package_weight'=> 'required|numeric',
+            'package_height'=> 'required|numeric',
+            'package_width'=> 'required|numeric',
+            'package_length'=> 'required|numeric',
+            'price_mrp'=> 'required|numeric',
+            'price_selling'=> 'required|numeric',
+            'fixed_price'=> 'numeric'
         ]);
 
         if ($validator->fails()) {
@@ -179,7 +185,7 @@ class InventoryController extends Controller
     public function get_category_brand_model()
     {
         $category = Category::select('id', 'name')->get();
-        $model = WifiRouterModel::select('id', 'name')->get();
+        $model = WifiRouterModel::select('id', 'name', 'category')->get();
         $brand = WifiBrand::select('id', 'name')->get();
         return response()->json([
             'success' => true,
@@ -353,9 +359,10 @@ class InventoryController extends Controller
     {
         $user = auth()->user();
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|min:2|max:100'.($request->id?'':'|unique:wifi_router'),
+            // 'name' => 'required|string|min:2|max:100'.($request->id?'':'|unique:wifi_router'),
             // 'mac_address' => 'required|string|min:17|max:18|unique:wifi_router',
             'model_id' => 'required|integer',
+            'category' => 'required|integer',
         ]);
 
         if ($validator->fails()) {
@@ -370,12 +377,12 @@ class InventoryController extends Controller
         $key = Str::random(20);
 
         $data = array(
-            'name' => $request->input('name'),
+            // 'name' => $request->input('name'),
             'mac_address' => $request->input('mac_address'),
             'model_id' => $request->input('model_id'),
             'pdoa_id' => 'pulse_1_2022-05-24_08-41-34',
             'category' => $request->input('category'),
-            'brand' => $request->input('brand'),
+            // 'brand' => $request->input('brand'),
             'serial_num' => $request->input('serial'),
             'wlan0' => $request->input('wlan0'),
             'wlan1' => $request->input('wlan1'),
@@ -421,9 +428,9 @@ class InventoryController extends Controller
     public function get_stock(Request $request) {
         $stocks = Wifi_router::leftJoin('category', 'wifi_router.category', '=', 'category.id')
         ->leftJoin('wifi_router_model', 'wifi_router.model_id', '=', 'wifi_router_model.id')
-        ->leftJoin('wi_fi_brand', 'wifi_router.brand', '=', 'wi_fi_brand.id')
+        // ->leftJoin('wi_fi_brand', 'wifi_router.brand', '=', 'wi_fi_brand.id')
         ->leftJoin('users', 'wifi_router.owner_id', '=', 'users.id')
-        ->select('wifi_router.*', 'wifi_router_model.name as model_name', 'wi_fi_brand.name as brand_name', 'users.username as user_name', 'category.name as category_name')
+        ->select('wifi_router.*', 'wifi_router_model.name as model_name', 'users.username as user_name', 'category.name as category_name')
         ->get();
         return response()->json([
             'success' => true,

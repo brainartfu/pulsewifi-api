@@ -16,7 +16,6 @@ class WifiRouterModel extends Model
         'category',
         'description',
         'status',
-        'price',
         'brand',
         'model',
         'hardware_version',
@@ -27,7 +26,6 @@ class WifiRouterModel extends Model
         'package_length',
         'price_mrp',
         'price_selling',
-        'shipping',
         'fixed_price'
     ];
 
