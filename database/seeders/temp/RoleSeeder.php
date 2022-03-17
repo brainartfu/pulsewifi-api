@@ -1,0 +1,148 @@
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+
+class RoleSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     *
+     * @return void
+     */
+    public function run()
+    {
+        DB::table('roles')->insert([
+            'name' => "superadmin",
+            'display_name' => "SuperAdmin",
+            'Wifi_Users' => 1,
+            'Wifi_Router' => 1,
+            'Location' => 1,
+            'Distributor' => 1,
+            'Franchise' => 1,
+            'Internet_Plan_Setting' => 1,
+            'Internet_Plan_View' => 1,
+            'Payout_Setting' => 1,
+            'Payout_Log' => 1,
+            'Payout_Log_Process' => 1,
+            'Payment_Setting' => 1,
+            'Payment_Log' => 1,
+            'Leads' => 1,
+            'Add_Leads' => 1,
+            'SMS_Gateway' => 1,
+            'SMS_Template' => 1,
+            'Mail_Server' => 1,
+            'Email_Template' => 1,
+            'Network_Setting' => 1,
+            'role_management' => 1,
+            'PDOA_Management' => 1,
+            'required' => 1,
+        ]);
+        DB::table('roles')->insert([
+            'name' => "admin",
+            'display_name' => "Admin",
+            'Wifi_Users' => 1,
+            'Wifi_Router' => 1,
+            'Location' => 1,
+            'Distributor' => 1,
+            'Franchise' => 1,
+            'Internet_Plan_Setting' => 0,
+            'Internet_Plan_View' => 1,
+            'Payout_Setting' => 1,
+            'Payout_Log' => 1,
+            'Payout_Log_Process' => 1,
+            'Payment_Setting' => 0,
+            'Payment_Log' => 1,
+            'Leads' => 1,
+            'Add_Leads' => 0,
+            'SMS_Gateway' => 0,
+            'SMS_Template' => 1,
+            'Mail_Server' => 1,
+            'Email_Template' => 1,
+            'Network_Setting' => 0,
+            'role_management' => 0,
+            'PDOA_Management' => 0,
+            'required' => 1,
+        ]);
+        DB::table('roles')->insert([
+            'name' => "support",
+            'display_name' => "Support",
+            'Wifi_Users' => 1,
+            'Wifi_Router' => 1,
+            'Location' => 1,
+            'Distributor' => 1,
+            'Franchise' => 1,
+            'Internet_Plan_Setting' => 0,
+            'Internet_Plan_View' => 1,
+            'Payout_Setting' => 0,
+            'Payout_Log' => 1,
+            'Payout_Log_Process' => 1,
+            'Payment_Setting' => 0,
+            'Payment_Log' => 1,
+            'Leads' => 1,
+            'Add_Leads' => 0,
+            'SMS_Gateway' => 0,
+            'SMS_Template' => 1,
+            'Mail_Server' => 1,
+            'Email_Template' => 1,
+            'Network_Setting' => 0,
+            'role_management' => 0,
+            'PDOA_Management' => 0,
+            'required' => 1,
+        ]);
+        DB::table('roles')->insert([
+            'name' => "Distributor",
+            'display_name' => "Distributor",
+            'Wifi_Users' => 0,
+            'Wifi_Router' => 0,
+            'Location' => 1,
+            'Franchise' => 1,
+            'Distributor' => 1,
+            'Internet_Plan_Setting' => 0,
+            'Internet_Plan_View' => 1,
+            'Payout_Setting' => 0,
+            'Payout_Log' => 1,
+            'Payout_Log_Process' => 0,
+            'Payment_Setting' => 0,
+            'Payment_Log' => 1,
+            'Leads' => 0,
+            'Add_Leads' => 0,
+            'SMS_Gateway' => 0,
+            'SMS_Template' => 0,
+            'Mail_Server' => 0,
+            'Email_Template' => 0,
+            'Network_Setting' => 0,
+            'role_management' => 0,
+            'PDOA_Management' => 0,
+            'required' => 1,
+        ]);
+        DB::table('roles')->insert([
+            'name' => "Franchise",
+            'display_name' => "Franchise",
+            'Wifi_Users' => 0,
+            'Wifi_Router' => 0,
+            'Location' => 1,
+            'Distributor' => 0,
+            'Franchise' => 0,
+            'Internet_Plan_Setting' => 0,
+            'Internet_Plan_View' => 1,
+            'Payout_Setting' => 0,
+            'Payout_Log' => 1,
+            'Payout_Log_Process' => 0,
+            'Payment_Setting' => 0,
+            'Payment_Log' => 1,
+            'Leads' => 0,
+            'Add_Leads' => 0,
+            'SMS_Gateway' => 0,
+            'SMS_Template' => 0,
+            'Mail_Server' => 0,
+            'Email_Template' => 0,
+            'Network_Setting' => 0,
+            'role_management' => 0,
+            'PDOA_Management' => 0,
+            'required' => 1,
+        ]);
+    }
+}
